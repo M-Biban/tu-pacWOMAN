@@ -48,7 +48,11 @@ class GameStateFeatures:
         """
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.food = state.getFood()
+        self.state = state.getPacmanState()
+        self.ghostP = state.getGhostPositions()
+        self.walls = state.getWalls()
+        # self.capsules = state.getCapsules() Small Grid doesnt have capsules
 
 
 class QLearnAgent(Agent):
@@ -254,6 +258,8 @@ class QLearnAgent(Agent):
         print("Score: ", state.getScore())
 
         stateFeatures = GameStateFeatures(state)
+        print("something:")
+        print(stateFeatures.walls)
 
         # Now pick what action to take.
         # The current code shows how to do that but just makes the choice randomly.
