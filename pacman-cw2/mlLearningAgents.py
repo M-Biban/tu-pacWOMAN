@@ -193,14 +193,7 @@ class QLearnAgent(Agent):
         initialQ = self.getQValue(state, action)
         maxQ = self.maxQValue(nextState)
         self.QValues[state, action] = initialQ + (self.alpha * (reward + (self.gamma * maxQ) - initialQ))
-
-    # def calculateQValue(self, qValue, newState, action):
-    #     fakereward = 1
-    #     anotherQ = self.QValues[newState][action][qValue]
-    #     newQ = qValue + (self.alpha * (fakereward + (self.gamma * anotherQ) - qValue))
-    #     return newQ
-    # WARNING: You will be tested on the functionality of this method
-    # DO NOT change the function signature
+        
     def updateCount(self,
                     state: GameStateFeatures,
                     action: Directions):
@@ -284,7 +277,13 @@ class QLearnAgent(Agent):
 
         # Now pick what action to take.
         # The current code shows how to do that but just makes the choice randomly.
-        return random.choice(legal)
+        maxQ = self.maxQValue(state)
+        if util.flipCoin(self.epsilon):
+            random.choice(legal)
+        else:
+            for action in legal:
+                if self.getQValue(state, action) == maxQ:
+                    return action
 
     def final(self, state: GameState):
         """
