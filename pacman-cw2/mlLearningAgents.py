@@ -85,6 +85,8 @@ class QLearnAgent(Agent):
         self.numTraining = int(numTraining)
         # Count the number of games we have played
         self.episodesSoFar = 0
+        self.QValues = {}
+        self.NValues = {}
 
     # Accessor functions for the variable episodesSoFar controlling learning
     def incrementEpisodesSoFar(self):
@@ -126,7 +128,8 @@ class QLearnAgent(Agent):
             The reward assigned for the given trajectory
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        print(startState)
+        print(endState)
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -174,8 +177,19 @@ class QLearnAgent(Agent):
             reward: the reward received on this trajectory
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.computeReward(state, nextState)
+        # qvalue = 0
+        # if(self.QValues[state][action]):
+        #     qvalue = self.QValues[state][action][qvalue]
+            
+        # updatedQ = self.calculateQValue(qvalue, nextState, action)
+        # self.QValues[state][action][qvalue] = updatedQ
 
+    # def calculateQValue(self, qValue, newState, action):
+    #     fakereward = 1
+    #     anotherQ = self.QValues[newState][action][qValue]
+    #     newQ = qValue + (self.alpha * (fakereward + (self.gamma * anotherQ) - qValue))
+    #     return newQ
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
     def updateCount(self,
@@ -274,6 +288,7 @@ class QLearnAgent(Agent):
             state: the final game state
         """
         print(f"Game {self.getEpisodesSoFar()} just ended!")
+        print("final state: " + str(self.episodesSoFar))
 
         # Keep track of the number of games played, and set learning
         # parameters to zero when we are done with the pre-set number
