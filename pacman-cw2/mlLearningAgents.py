@@ -190,13 +190,9 @@ class QLearnAgent(Agent):
             reward: the reward received on this trajectory
         """
         "*** YOUR CODE HERE ***"
-        self.computeReward(state, nextState)
-        # qvalue = 0
-        # if(self.QValues[state][action]):
-        #     qvalue = self.QValues[state][action][qvalue]
-            
-        # updatedQ = self.calculateQValue(qvalue, nextState, action)
-        # self.QValues[state][action][qvalue] = updatedQ
+        initialQ = self.getQValue(state, action)
+        maxQ = self.maxQValue(nextState)
+        self.QValues[state, action] = initialQ + (self.alpha * (reward + (self.gamma * maxQ) - initialQ))
 
     # def calculateQValue(self, qValue, newState, action):
     #     fakereward = 1
