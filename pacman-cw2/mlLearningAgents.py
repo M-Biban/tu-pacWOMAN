@@ -51,7 +51,7 @@ class GameStateFeatures:
         self.food = state.getFood()
         self.state = state.getPacmanState()
         self.ghostP = state.getGhostPositions()
-        self.walls = state.getWalls()
+        self.legalActions = state.getLegalPacmanActions()
         # self.capsules = state.getCapsules() Small Grid doesnt have capsules
 
 
@@ -128,8 +128,13 @@ class QLearnAgent(Agent):
             The reward assigned for the given trajectory
         """
         "*** YOUR CODE HERE ***"
-        print(startState)
-        print(endState)
+        endScore = endState.getScore() - startState.getScore()
+        if endScore == -1:
+            return 0
+        elif endScore >= 0:
+            return 1
+        else:
+            return -1
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -145,7 +150,10 @@ class QLearnAgent(Agent):
             Q(state, action)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        qValue = self.QValues[state, action]
+        if(not qValue):
+            self.QValues[state, action] = 0
+        return self.QValues[state, action]
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -157,8 +165,13 @@ class QLearnAgent(Agent):
         Returns:
             q_value: the maximum estimated Q-value attainable from the state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        maxQ = 0
+        for action in state.legalActions:
+            qVal = self.getQValue(state, action)
+            if qVal > maxQ:
+                maxQ = qVal
+                
+        return maxQ
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -272,8 +285,6 @@ class QLearnAgent(Agent):
         print("Score: ", state.getScore())
 
         stateFeatures = GameStateFeatures(state)
-        print("something:")
-        print(stateFeatures.walls)
 
         # Now pick what action to take.
         # The current code shows how to do that but just makes the choice randomly.
@@ -288,7 +299,7 @@ class QLearnAgent(Agent):
             state: the final game state
         """
         print(f"Game {self.getEpisodesSoFar()} just ended!")
-        print("final state: " + str(self.episodesSoFar))
+        # update the q value to be the reward i think
 
         # Keep track of the number of games played, and set learning
         # parameters to zero when we are done with the pre-set number
