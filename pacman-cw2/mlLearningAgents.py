@@ -150,9 +150,6 @@ class QLearnAgent(Agent):
             Q(state, action)
         """
         "*** YOUR CODE HERE ***"
-        # qValue = self.QValues[state, action]
-        # if(not qValue):
-        #     self.QValues[state, action] = 0
         return self.QValues.get((state, action), 0.0)
 
     # WARNING: You will be tested on the functionality of this method
@@ -205,7 +202,8 @@ class QLearnAgent(Agent):
             action: Action taken
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        current_count = self.getCount(state, action)
+        self.NValues[state, action] = current_count + 1
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -221,7 +219,7 @@ class QLearnAgent(Agent):
             Number of times that the action has been taken in a given state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.NValues.get((state, action), 0)
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
