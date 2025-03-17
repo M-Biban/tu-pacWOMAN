@@ -240,7 +240,12 @@ class QLearnAgent(Agent):
             The exploration value
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        Ne = 5
+        reward_plus = 10.0
+        if (counts < Ne):
+            return reward_plus
+        else:
+            return utility
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
