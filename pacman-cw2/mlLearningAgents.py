@@ -150,10 +150,10 @@ class QLearnAgent(Agent):
             Q(state, action)
         """
         "*** YOUR CODE HERE ***"
-        qValue = self.QValues[state, action]
-        if(not qValue):
-            self.QValues[state, action] = 0
-        return self.QValues[state, action]
+        # qValue = self.QValues[state, action]
+        # if(not qValue):
+        #     self.QValues[state, action] = 0
+        return self.QValues.get((state, action), 0.0)
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -274,12 +274,12 @@ class QLearnAgent(Agent):
         print("Score: ", state.getScore())
 
         stateFeatures = GameStateFeatures(state)
-
+        
         # Now pick what action to take.
         # The current code shows how to do that but just makes the choice randomly.
-        maxQ = self.maxQValue(state)
+        maxQ = self.maxQValue(stateFeatures)
         if util.flipCoin(self.epsilon):
-            random.choice(legal)
+            return random.choice(legal)
         else:
             for action in legal:
                 if self.getQValue(state, action) == maxQ:
