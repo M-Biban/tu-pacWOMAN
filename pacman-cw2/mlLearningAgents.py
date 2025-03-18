@@ -55,9 +55,17 @@ class GameStateFeatures:
         self.legalActions = state.getLegalPacmanActions()
         
     def __hash__(self):
+        """
+        Returns:
+            Hash of the state
+        """
         return hash((self.state, tuple(self.ghostP), str(self.food)))
 
     def __eq__(self, other):
+        """
+        Returns:
+            True if all the states are equal, False otherwise
+        """
         return (self.state == other.state and
                 self.ghostP == other.ghostP and
                 self.food == other.food)
@@ -137,14 +145,7 @@ class QLearnAgent(Agent):
         Returns:
             The reward assigned for the given trajectory
         """
-        "*** YOUR CODE HERE ***"
         endScore = endState.getScore() - startState.getScore()
-        # if endScore == -1:
-        #     return 1
-        # elif endScore >= 0:
-        #     return 100
-        # else:
-        #     return -10
         endStateFeatures = GameStateFeatures(endState)
         pacmanPos = endStateFeatures.pacmanP
         foodList = endStateFeatures.food.asList()
@@ -163,7 +164,6 @@ class QLearnAgent(Agent):
         foodReward = 10 / (minFoodDist + 1)
         ghostPenalty = -20 / (minGhostDist + 1)
         reward = foodReward + ghostPenalty + endScore
-        # print(reward)
         return reward
 
     # WARNING: You will be tested on the functionality of this method
@@ -179,7 +179,6 @@ class QLearnAgent(Agent):
         Returns:
             Q(state, action)
         """
-        "*** YOUR CODE HERE ***"
         return self.QValues[(state,action)]
 
     # WARNING: You will be tested on the functionality of this method
@@ -192,14 +191,15 @@ class QLearnAgent(Agent):
         Returns:
             q_value: the maximum estimated Q-value attainable from the state
         """
-        # print(f"Legal actions for state: {state.legalActions}")
         
         maxQ = float('-inf')
-        for action in state.legalActions:
-            qVal = self.getQValue(state, action)
-            # print(f"qVal: {qVal}")
-            if qVal > maxQ:
-                maxQ = qVal
+        if not state.legalActions:
+            maxQ = 0.0
+        else:
+            for action in state.legalActions:
+                qVal = self.getQValue(state, action)
+                if qVal > maxQ:
+                    maxQ = qVal
                 
         return maxQ
 
@@ -221,7 +221,7 @@ class QLearnAgent(Agent):
         """
         "*** YOUR CODE HERE ***"
         initialQ = self.getQValue(state, action)
-        maxQ = self.maxQValue(state)
+        maxQ = self.maxQValue(nextState)
         self.updateCount(state, action)
         self.QValues[(state, action)] = initialQ + (self.alpha * (reward + (self.gamma * maxQ) - initialQ))
         
@@ -236,9 +236,7 @@ class QLearnAgent(Agent):
             state: Starting state
             action: Action taken
         """
-        "*** YOUR CODE HERE ***"
         current_count = self.getCount(state, action)
-        # self.NValues.update({(state, action): current_count + 1})
         self.NValues[(state, action)] = current_count + 1
 
     # WARNING: You will be tested on the functionality of this method
@@ -254,8 +252,6 @@ class QLearnAgent(Agent):
         Returns:
             Number of times that the action has been taken in a given state
         """
-        "*** YOUR CODE HERE ***"
-        # return self.NValues.setdefault((state, action), 0)
         return self.NValues[(state, action)]   
 
     # WARNING: You will be tested on the functionality of this method
@@ -267,8 +263,6 @@ class QLearnAgent(Agent):
         Computes exploration function.
         Return a value based on the counts
 
-        HINT: Do a greed-pick or a least-pick
-
         Args:
             utility: expected utility for taking some action a in some given state s
             counts: counts for having taken visited
@@ -276,10 +270,8 @@ class QLearnAgent(Agent):
         Returns:
             The exploration value
         """
-        "*** YOUR CODE HERE ***"
         Ne = 5
         reward_plus = 10
-        # print(f"Counts: {counts}")
         if (counts < Ne):
             return utility + reward_plus
         else:
@@ -308,7 +300,13 @@ class QLearnAgent(Agent):
             legal.remove(Directions.STOP)
 
         stateFeatures = GameStateFeatures(state)
-
+        
+        # If this is not the first state, update the q value
+        if self.prevState:
+            reward = self.computeReward(self.prevState, state)
+            self.learn(GameStateFeatures(self.prevState), self.prevAction, reward, stateFeatures)
+        
+        # Choose the best action with epsilon greedy  
         if util.flipCoin(self.epsilon):
             maxAction = random.choice(legal)
         else:
@@ -321,9 +319,6 @@ class QLearnAgent(Agent):
                     maxExplore = exploration
                     maxAction = action
 
-        if self.prevState:
-            reward = self.computeReward(self.prevState, state)
-            self.learn(GameStateFeatures(self.prevState), self.prevAction, reward, stateFeatures)
 
         self.prevState = state
         self.prevAction = maxAction
@@ -339,7 +334,6 @@ class QLearnAgent(Agent):
             state: the final game state
         """
         print(f"Game {self.getEpisodesSoFar()} just ended!")
-        # update the q value to be the reward i think
 
         # Keep track of the number of games played, and set learning
         # parameters to zero when we are done with the pre-set number
@@ -347,8 +341,9 @@ class QLearnAgent(Agent):
         self.incrementEpisodesSoFar()
         self.learn(GameStateFeatures(self.prevState), self.prevAction, self.computeReward(self.prevState, state), GameStateFeatures(state))
         
-        self.prevAction = None
+        # Reset the state and action at the end of each episode
         self.prevState = None
+        self.prevAction = None
         if self.getEpisodesSoFar() == self.getNumTraining():
             msg = 'Training Done (turning off epsilon and alpha)'
             print('%s\n%s' % (msg, '-' * len(msg)))
