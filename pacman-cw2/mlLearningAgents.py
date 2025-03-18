@@ -151,13 +151,11 @@ class QLearnAgent(Agent):
         ghostPos = endStateFeatures.ghostP
 
         if foodList:
-            # print(f"Food list: {foodList}")
             minFoodDist = min([util.manhattanDistance(pacmanPos, food) for food in foodList])
         else:
             minFoodDist = 0
 
         if ghostPos:
-            # print(f"Ghost list: {ghostPos}")
             minGhostDist = min([util.manhattanDistance(pacmanPos, ghost) for ghost in ghostPos])
         else:
             minGhostDist = float('inf')
@@ -348,6 +346,9 @@ class QLearnAgent(Agent):
         # of training episodes
         self.incrementEpisodesSoFar()
         self.learn(GameStateFeatures(self.prevState), self.prevAction, self.computeReward(self.prevState, state), GameStateFeatures(state))
+        
+        self.prevAction = None
+        self.prevState = None
         if self.getEpisodesSoFar() == self.getNumTraining():
             msg = 'Training Done (turning off epsilon and alpha)'
             print('%s\n%s' % (msg, '-' * len(msg)))
