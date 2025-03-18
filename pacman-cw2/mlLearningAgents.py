@@ -52,6 +52,8 @@ class GameStateFeatures:
         self.state = state.getPacmanState()
         self.ghostP = state.getGhostPositions()
         self.legalActions = state.getLegalPacmanActions()
+        self.prevState = None
+        self.prevAction = None
         
     def __hash__(self):
         return hash((self.state, tuple(self.ghostP), str(self.food)))
@@ -93,7 +95,7 @@ class QLearnAgent(Agent):
         # Count the number of games we have played
         self.episodesSoFar = 0
         self.QValues = util.Counter()
-        self.NValues = {}
+        self.NValues = util.Counter()
 
     # Accessor functions for the variable episodesSoFar controlling learning
     def incrementEpisodesSoFar(self):
@@ -139,7 +141,7 @@ class QLearnAgent(Agent):
         if endScore == -1:
             return 1
         elif endScore >= 0:
-            return 10
+            return 100
         else:
             return -10
 
@@ -169,12 +171,12 @@ class QLearnAgent(Agent):
         Returns:
             q_value: the maximum estimated Q-value attainable from the state
         """
-        print(f"Legal actions for state: {state.legalActions}")
+        # print(f"Legal actions for state: {state.legalActions}")
         
         maxQ = float('-inf')
         for action in state.legalActions:
             qVal = self.getQValue(state, action)
-            print(f"qVal: {qVal}")
+            # print(f"qVal: {qVal}")
             if qVal > maxQ:
                 maxQ = qVal
                 
@@ -200,15 +202,15 @@ class QLearnAgent(Agent):
         initialQ = self.getQValue(state, action)
         maxQ = self.maxQValue(state)
         self.updateCount(state, action)
-        print(f"Initial Q {initialQ}")
-        print("reward: ", reward)
-        print(f"maxQ: {maxQ}")
-        print(f"gamma: {self.gamma}")
-        print(f"alpha: {self.alpha}")
+        # print(f"Initial Q {initialQ}")
+        # print("reward: ", reward)
+        # print(f"maxQ: {maxQ}")
+        # print(f"gamma: {self.gamma}")
+        # print(f"alpha: {self.alpha}")
         calc = initialQ + self.alpha * (reward + self.gamma * maxQ - initialQ)
         self.QValues[(state, action)] = initialQ + (self.alpha * (reward + (self.gamma * maxQ) - initialQ))
-        print(f"Calc {calc}")
-        print(f"Updated Q {self.QValues[(state, action)]}")
+        # print(f"Calc {calc}")
+        # print(f"Updated Q {self.QValues[(state, action)]}")
         
         
         
@@ -224,7 +226,8 @@ class QLearnAgent(Agent):
         """
         "*** YOUR CODE HERE ***"
         current_count = self.getCount(state, action)
-        self.NValues.update({(state, action): current_count + 1})
+        # self.NValues.update({(state, action): current_count + 1})
+        self.NValues[(state, action)] = current_count + 1
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -240,7 +243,8 @@ class QLearnAgent(Agent):
             Number of times that the action has been taken in a given state
         """
         "*** YOUR CODE HERE ***"
-        return self.NValues.setdefault((state, action), 0)
+        # return self.NValues.setdefault((state, action), 0)
+        return self.NValues[(state, action)]   
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -261,8 +265,9 @@ class QLearnAgent(Agent):
             The exploration value
         """
         "*** YOUR CODE HERE ***"
-        Ne = 5
-        reward_plus = 5
+        Ne = 3
+        reward_plus = 10
+        # print(f"Counts: {counts}")
         if (counts < Ne):
             return utility + reward_plus
         else:
@@ -299,29 +304,49 @@ class QLearnAgent(Agent):
         # print("Score: ", state.getScore())
 
         stateFeatures = GameStateFeatures(state)
-        
-        # Now pick what action to take.
-        # The current code shows how to do that but just makes the choice randomly.
-        
-        maxExplore = float('-inf')
-        maxAction = None
+
         if util.flipCoin(self.epsilon):
-           maxAction = random.choice(legal)
+            maxAction = random.choice(legal)
         else:
+            maxExplore = float('-inf')
+            maxAction = None
             for action in legal:
                 qValue = self.getQValue(stateFeatures, action)
-                exploration = self.explorationFn(qValue, self.getCount(state, action))
-                print(f"exploration: {exploration}")
+                exploration = self.explorationFn(qValue, self.getCount(stateFeatures, action))
                 if exploration > maxExplore:
                     maxExplore = exploration
                     maxAction = action
         
-        print(str(maxAction))
-        successorState = state.generatePacmanSuccessor(maxAction)
-        if successorState:
-            reward = self.computeReward(state, successorState)
-            self.learn(stateFeatures, maxAction, reward, GameStateFeatures(successorState))
+        self.prevState = state
+        self.prevAction = maxAction
+        # self.updateCount(stateFeatures, maxAction)
         return maxAction
+
+        
+        # Now pick what action to take.
+        # The current code shows how to do that but just makes the choice randomly.
+        
+        # maxExplore = float('-inf')
+        # maxAction = None
+        # if util.flipCoin(self.epsilon):
+        #    maxAction = random.choice(legal)
+        # else:
+        #     for action in legal:
+        #         qValue = self.getQValue(stateFeatures, action)
+        #         exploration = self.explorationFn(qValue, self.getCount(state, action))
+        #         # print(f"exploration: {exploration}")
+        #         if exploration > maxExplore:
+        #             maxExplore = exploration
+        #             maxAction = action
+
+
+        
+        # # print(str(maxAction))
+        # successorState = state.generatePacmanSuccessor(maxAction)
+        # if successorState:
+        #     reward = self.computeReward(state, successorState)
+        #     self.learn(stateFeatures, maxAction, reward, GameStateFeatures(successorState))
+        # return maxAction
 
     def final(self, state: GameState):
         """
@@ -338,6 +363,7 @@ class QLearnAgent(Agent):
         # parameters to zero when we are done with the pre-set number
         # of training episodes
         self.incrementEpisodesSoFar()
+        self.learn(GameStateFeatures(self.prevState), self.prevAction, self.computeReward(self.prevState, state), GameStateFeatures(state))
         if self.getEpisodesSoFar() == self.getNumTraining():
             msg = 'Training Done (turning off epsilon and alpha)'
             print('%s\n%s' % (msg, '-' * len(msg)))
